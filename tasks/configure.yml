@@ -1,0 +1,9 @@
+---
+- name: Copy the phpfpm Exporter systemd service file
+  template:
+    src: phpfpm_exporter.service.j2
+    dest: /etc/systemd/system/phpfpm_exporter.service
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart phpfpm_exporter

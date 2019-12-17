@@ -1,0 +1,69 @@
+---
+- name: Assert usage of systemd as an init system
+  assert:
+    that: ansible_service_mgr == 'systemd'
+    msg: "This role only works with systemd"
+
+- name: Get systemd version
+  command: systemctl --version
+  changed_when: false
+  check_mode: false
+  register: __systemd_version
+  tags:
+    - skip_ansible_lint
+
+- name: Set systemd version fact
+  set_fact:
+    phpfpm_exporter_systemd_version: "{{ __systemd_version.stdout_lines[0] | regex_replace('^systemd\\s(\\d+).*$', '\\1') }}"
+
+- name: Check if phpfpm_exporter is installed
+  stat:
+    path: "/usr/local/bin/phpfpm_exporter"
+  register: __phpfpm_exporter_is_installed
+  check_mode: false
+  tags:
+    - phpfpm_exporter_install
+
+- name: Gather currently installed phpfpm_exporter version (if any)
+  command: "/usr/local/bin/phpfpm_exporter version"
+  args:
+    warn: false
+  changed_when: false
+  register: __phpfpm_exporter_current_version_output
+  check_mode: false
+  when: __phpfpm_exporter_is_installed.stat.exists
+  tags:
+    - phpfpm_exporter_install
+    - skip_ansible_lint
+
+- block:
+    - name: Get latest release
+      uri:
+        url: "https://api.github.com/repos/hipages/php-fpm_exporter/releases/latest"
+        method: GET
+        return_content: true
+        status_code: 200
+        body_format: json
+        validate_certs: false
+      register: _latest_release
+      until: _latest_release.status == 200
+      retries: 5
+
+    - name: "Set phpfpm_exporter version to {{ _latest_release.json.tag_name[1:] }}"
+      set_fact:
+        phpfpm_exporter_version: "{{ _latest_release.json.tag_name[1:] }}"
+  when: phpfpm_exporter_version == "latest"
+  delegate_to: localhost
+  run_once: true
+
+- name: Get checksum list from github
+  set_fact:
+    _checksums: "{{ lookup('url', 'https://github.com/hipages/php-fpm_exporter/releases/download/v' + phpfpm_exporter_version + '/php-fpm_exporter_' + phpfpm_exporter_version + '_checksums.txt', wantlist=True) | list }}"
+  run_once: true
+
+
+- name: "Get checksum for {{ go_arch }} architecture"
+  set_fact:
+    phpfpm_exporter_checksum: "{{ item.split(' ')[0] }}"
+  with_items: "{{ _checksums }}"
+  when: "('linux_' + go_arch) in item"

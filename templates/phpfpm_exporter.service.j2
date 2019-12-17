@@ -1,0 +1,51 @@
+{{ ansible_managed | comment }}
+
+[Unit]
+Description=Prometheus php-fpm Exporter
+After=network-online.target
+StartLimitInterval=0
+
+[Service]
+Type=simple
+User={{ phpfpm_exporter_system_user }}
+Group={{ phpfpm_exporter_system_group }}
+ExecStart=/usr/local/bin/phpfpm_exporter server \
+{%   if phpfpm_exporter_web_listen_address|length %}
+    --web.listen-address {{ phpfpm_exporter_web_listen_address }} \
+{%   endif -%}
+{%   if phpfpm_exporter_web_telemetry_paths|length %}
+    --web.telemetry-path {{ phpfpm_exporter_web_telemetry_paths }} \
+{%   endif -%}
+{%   if phpfpm_exporter_scrape_uri|length %}
+    --phpfpm.scrape-uri '{{ phpfpm_exporter_scrape_uri }}' \
+{%   endif -%}
+{%   if phpfpm_exporter_fix_process_count %}
+    --phpfpm.fix-process-count \
+{%   endif -%}
+{%   if phpfpm_exporter_log_level|length %}
+    --log.level {{ phpfpm_exporter_log_level }} \
+{%   endif -%}
+
+SyslogIdentifier=phpfpm_exporter
+Restart=always
+RestartSec=1
+
+PrivateTmp=yes
+{% for m in ansible_mounts if m.mount == '/home' %}
+ProtectHome=read-only
+{% else %}
+ProtectHome=yes
+{% endfor %}
+NoNewPrivileges=yes
+
+{% if phpfpm_exporter_systemd_version | int >= 232 %}
+ProtectSystem=strict
+ProtectControlGroups=true
+ProtectKernelModules=true
+ProtectKernelTunables=yes
+{% else %}
+ProtectSystem=full
+{% endif %}
+
+[Install]
+WantedBy=multi-user.target

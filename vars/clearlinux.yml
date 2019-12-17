@@ -1,0 +1,3 @@
+---
+phpfpm_exporter_dependencies:
+  - sysadmin-basic

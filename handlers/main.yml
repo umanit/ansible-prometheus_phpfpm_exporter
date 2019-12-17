@@ -1,0 +1,7 @@
+---
+- name: restart phpfpm_exporter
+  become: true
+  systemd:
+    daemon_reload: true
+    name: phpfpm_exporter
+    state: restarted
