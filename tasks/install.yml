@@ -27,9 +27,6 @@
     home: /
   when: phpfpm_exporter_system_user != "root" and phpfpm_exporter_manage_system_user_group
 
-- debug:
-    msg: "https://github.com/hipages/php-fpm_exporter/releases/download/v{{ phpfpm_exporter_version }}/php-fpm_exporter_{{ phpfpm_exporter_version }}_linux_{{ go_arch }}"
-
 - name: Download phpfpm_exporter binary
   get_url:
     url: "https://github.com/hipages/php-fpm_exporter/releases/download/v{{ phpfpm_exporter_version }}/php-fpm_exporter_{{ phpfpm_exporter_version }}_linux_{{ go_arch }}"
