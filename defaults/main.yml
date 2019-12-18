@@ -8,6 +8,8 @@ phpfpm_exporter_system_user: "{{ phpfpm_exporter_system_group }}"
 
 phpfpm_exporter_web_listen_address: "0.0.0.0:9253"
 
+phpfpm_exporter_manage_systemd_service: true
+
 phpfpm_exporter_web_telemetry_paths: ""
 phpfpm_exporter_scrape_uri: ""
 phpfpm_exporter_fix_process_count: false

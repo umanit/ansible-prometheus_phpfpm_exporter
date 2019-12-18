@@ -37,5 +37,6 @@
     name: phpfpm_exporter
     enabled: true
     state: started
+  when: phpfpm_exporter_manage_systemd_service
   tags:
     - phpfpm_exporter_run

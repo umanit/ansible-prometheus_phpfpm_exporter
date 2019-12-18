@@ -11,10 +11,12 @@
   register: __systemd_version
   tags:
     - skip_ansible_lint
+  when: phpfpm_exporter_manage_systemd_service
 
 - name: Set systemd version fact
   set_fact:
     phpfpm_exporter_systemd_version: "{{ __systemd_version.stdout_lines[0] | regex_replace('^systemd\\s(\\d+).*$', '\\1') }}"
+  when: phpfpm_exporter_manage_systemd_service
 
 - name: Check if phpfpm_exporter is installed
   stat:

@@ -7,3 +7,4 @@
     group: root
     mode: 0644
   notify: restart phpfpm_exporter
+  when: phpfpm_exporter_manage_systemd_service
